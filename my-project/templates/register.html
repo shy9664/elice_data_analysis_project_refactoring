@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% for message in get_flashed_messages() %}
+<div>
+    <p>{{ message }}</p>
+</div>
+{% endfor %}
+<form action="/register" method="post">
+    아이디 :
+    <input type="text" id='user_id' name="user_id" autocomplete="on" />
+    비밀번호 :
+    <input type="password" id='user_pw' name="user_pw" autocomplete="off"/>
+    이름 :
+    <input type="text" id='name' name="name" autocomplete="on"/>
+    <input type='submit' value = '회원가입' />
+</form>
+{% endblock %}
+

@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div>
+    <form>
+        아이디 :
+        <input type="text" id='user_id' name="user_id" autocomplete="on"/> 
+        비밀번호 :
+        <input type="password" id='user_pw' name="user_pw" autocomplete='off'/>
+        <button onclick="Login(event)">로그인</button>
+    </form>
+</div>
+<div>
+    <div id="g_id_onload"
+        data-client_id="39139298666-7qho2blkuc245alnvq95kd51qetsve95.apps.googleusercontent.com"
+        data-callback='handleToken'
+        data-auto_prompt="false">
+    </div>
+    <div class="g_id_signin"
+        data-type="standard"
+        data-size="large"
+        data-theme="outline"
+        data-text="sign_in_with"
+        data-shape="rectangular"
+        data-logo_alignment="left">
+    </div>
+</div>
+{% endblock %}  
+
+{% block scripts %}
+<script>
+    function handleToken(credential) {
+        $.ajax({
+            type:"POST",
+            url:"/googleLogin",
+            data: {
+                credential: credential
+            },
+            success: function(response) {
+                if (response.result == "success") {
+                    document.cookie=`user_name=${response.user_name}; path=/;`
+                    document.cookie=`user_id=${response.user_id}; path=/;`
+                    document.cookie=`csrf_access_token=${response.csrf_access_token}; path=/;`
+                    window.location.href = '/';
+                    alert('로그인 성공')
+                } else {
+                    window.location.reload()
+                    alert('아이디와 비밀번호를 다시 확인해주세요');
+                }
+            },
+            error: function(){
+                window.location.reload()
+                alert('로그인 실패')
+            }
+        });
+    }
+    function Login(event) {
+        event.preventDefault()
+        let user_id = document.getElementById('user_id').value
+        let user_pw = document.getElementById('user_pw').value
+        $.ajax({
+            type:"POST",
+            url:"/login",
+            data: {
+                user_id: user_id,
+                user_pw: user_pw
+            },
+            success: function(response) {
+                if (response.result == "success") {
+                    document.cookie=`user_name=${response.user_name}; path=/;`
+                    document.cookie=`user_id=${response.user_id}; path=/;`
+                    document.cookie=`csrf_access_token=${response.csrf_access_token}; path=/;`
+                    window.location.href = '/';
+                    alert('로그인 성공')
+                } else {
+                    window.location.reload()
+                    alert('아이디와 비밀번호를 다시 확인해주세요');
+                }
+            },
+            error: function(){
+                window.location.reload()
+                alert('로그인 실패')
+            }
+        });
+    }
+</script>
+{% endblock %}

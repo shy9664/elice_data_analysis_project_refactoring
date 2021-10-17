@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div>
+    <div>
+        <h4>게시글 등록</h4>
+    </div>
+    <div>
+        작성자: <span id='user_name'></span><br>
+        제목: <input type='text' id='title'><br>
+        내용: <textarea id='content' rows='30'></textarea><br>
+        <input type='file', id='file'>
+        <button onclick='writeArticle()'>게시글 등록</button>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+    function writeArticle() {
+        let formData = new FormData();
+        formData.append('name', $.cookie('user_name'))
+        formData.append('title', document.getElementById('title').value)
+        formData.append('content', document.getElementById('content').value)
+        formData.append('image', document.getElementById('file').files[0])
+        $.ajax({
+            type:"POST",
+            url:'/article/create',
+            enctype: 'multipart/form-data',
+            contentType: false,
+            processData: false,
+            headers: {
+                'X-CSRF-TOKEN': $.cookie('csrf_access_token')
+            },
+            data: formData
+            ,
+            success: function(response) {
+                if (response.result == "success") {
+                    location.replace(`/article/${response.new_article_id}`) // 작성된 게시글의 페이지로 가도록.. 
+                    alert('게시글 작성이 완료되었습니다')
+                }
+            },
+            error:function(error){
+                alert("게시글 작성 실패");
+                location.reload()
+            }
+        });
+    }
+    let loginUserName = $.cookie('user_name')
+    userName = document.getElementById('user_name')
+    userName.innerText = `${loginUserName}`
+</script>
+{% endblock %}

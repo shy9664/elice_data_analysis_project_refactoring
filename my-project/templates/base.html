@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <title>데이터 분석 프로젝트</title>
+</head>
+<body>
+    <nav>
+        <ul>
+            <li><a href='/'>메인</a></li>
+            {% if request.cookies.get('user_name') is none %}
+            <li><a href='/register'>회원가입</a></li>
+            <li><a href='/login'>로그인</a></li>
+            {% else %}
+            <li><a href='#' onclick="logout(event)">로그아웃</a></li>
+            {% endif %}
+            <li><a href='{{ url_for("board.index") }}'>게시판</a></li>
+        </ul>
+    </nav>
+<h3 id='loggedInUser'></h3>
+{% block content %}
+{% endblock %}
+</body>
+<script>
+    function logout(event) {
+        event.preventDefault()
+        $.ajax({
+            type:"GET",
+            url:"/logout",
+            success: function(response) {
+                if (response.result == "success") {
+                    alert('로그아웃 성공')
+                    document.cookie = `user_name =; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/;`
+                    document.cookie = `user_id =; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/;`      
+                    document.cookie = `csrf_access_token =; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/;`
+                    location.href = '/login'
+                }
+            },
+            error: function(){
+                window.location.reload()
+                alert('로그아웃 실패')
+            }
+        });
+    }
+    let name = $.cookie('user_name')
+    showName = document.getElementById('loggedInUser')
+    showName.innerText = `${name ? name : '비회원'} 님 안녕하세요!`
+</script>
+{% block scripts %}
+{% endblock %}
+</html>

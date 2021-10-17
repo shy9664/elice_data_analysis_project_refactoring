@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div>
+    <input id='article_id' type='hidden' value='{{ article.id }}' disabled>
+    <input id='article_user_id' type='hidden' value='{{ article.user_id }}' disabled>
+</div>
+<h2>제목: {{ article.title }}</h2>
+<div>
+    <div>
+        작성자: {{article.name}}
+    </div>
+    <div id='article_content'>
+        {{article.content}}
+    </div><br>
+    {% if article.image %}
+    <div>
+        <p>아래는 이 게시글에 첨부된 파일입니다</p>
+        <img src='{{article.image}}'>
+    </div>
+    {% endif %}
+    <div>
+        작성 일자: {{article.create_date}}
+    </div>
+    {% if article.update_date %}
+    <div>
+        수정 일자: {{ article.update_date }}
+    </div>
+    {% endif %}
+    <div>
+        <button id='modifyArticle' onclick='modifyArticle()'>수정</button>    
+        <button id='removeArticle' onclick='removeArticle()'>삭제</button>
+    </div>
+</div><br>
+
+<p><strong>이 글에 대한 {{ article.answer_set|length }}개의 답글이 있습니다.</strong></p>
+{% for answer in article.answer_set %}
+<div>
+    <div>
+        <div>
+            {{ loop.index }} 번째 답글
+        </div>
+        <div>
+            작성자: {{answer.name }}
+        </div>
+        <div>
+            내용: {{ answer.content }}
+        </div>
+        <div>
+            작성 일자: {{answer.create_date}}
+        </div>
+    </div>
+</div>
+{% endfor %}
+<div>
+    <textarea id='content' rows='10'></textarea>
+    <button onclick='answer()'>답글 등록</button>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const articleUserId = document.getElementById('article_user_id').value
+    const loggedInUser = $.cookie('user_id')
+    let modifyArticleBtn = document.getElementById('modifyArticle')
+    let removeArticleBtn = document.getElementById('removeArticle')
+    
+    if (articleUserId === loggedInUser) {
+        modifyArticleBtn.disabled = false;
+        removeArticleBtn.disabled = false;
+    } else {
+        modifyArticleBtn.disabled = true;
+        removeArticleBtn.disabled = true;
+    }
+    
+    function modifyArticle() {
+        let content = document.getElementById('article_content')
+        content.innerHTML = `<textarea id='modified_content'>${content.innerText}</textarea>`
+        let modifyArticleBtn = document.getElementById('modifyArticle')
+        modifyArticleBtn.innerText = '완료'
+        modifyArticleBtn.setAttribute('onclick', 'modifyArticleComplete()')
+    }
+
+    function modifyArticleComplete() {
+        let access_token = $.cookie('access_token');
+        let modifiedContent = document.getElementById('modified_content').value
+        let article_id = document.getElementById('article_id').value
+        $.ajax({
+            type:"PATCH",
+            url:'/article/create',
+            headers: {
+                'X-CSRF-TOKEN': $.cookie('csrf_access_token')
+            },
+            contentType : "application/json",
+            data: JSON.stringify({modifiedContent: modifiedContent, article_id: article_id})
+            ,
+            success: function(response) {
+                if (response.result == "success") {
+                    alert('게시글 수정이 완료되었습니다')
+                    let modifiedContent = document.getElementById('modified_content').value
+                    document.getElementById('article_content').innerText = modifiedContent
+                    let modifyArticleBtn = document.getElementById('modifyArticle')
+                    modifyArticleBtn.innerText = '수정'
+                    modifyArticleBtn.setAttribute('onclick', 'modifyArticle()')
+                }
+            },
+            error: function(error){
+                alert("게시글 수정 실패");
+                location.reload()
+            }
+        });
+    }
+
+    function removeArticle() {
+        let access_token = $.cookie('access_token');
+        let article_id = document.getElementById('article_id').value
+        $.ajax({
+            type:"DELETE",
+            url:'/article/create',
+            headers: {
+                'X-CSRF-TOKEN': $.cookie('csrf_access_token')
+            },
+            contentType : "application/json",
+            data: JSON.stringify({article_id: article_id})
+            ,
+            
+            success: function(response) {
+                if (response.result == "success") {
+                    alert('게시글 삭제 성공')
+                    location.href='/board'
+                }
+            },
+            error: function(error){
+                alert("게시글 삭제 실패");
+                location.reload()
+            }
+        });
+    }
+
+    function answer() {
+        let access_token = $.cookie('access_token');
+        let articleId = document.getElementById('article_id').value
+        let content = document.getElementById('content').value
+
+        $.ajax({
+            type:"POST",
+            url:`/article/${articleId}/answer`,
+            contentType : "application/json",
+            data: JSON.stringify({content:content})
+            ,
+            headers: {
+                'X-CSRF-TOKEN': $.cookie('csrf_access_token')
+            },
+            success: function(response) {
+                if (response.result == "success") {
+                    window.location.reload()
+                    alert('답글 작성이 완료되었습니다')
+                }
+            },
+            error:function(error){
+                alert("답글 작성 실패");
+                window.location.reload()
+            }
+        });
+    }
+</script>
+{% endblock %}
+

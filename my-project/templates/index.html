@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<p>홈 페이지 입니다</p>    
+<button onclick='dataAnalyze()'>(로그인 유저만 사용가능한 데이터 분석 기능)</button>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function dataAnalyze() {
+        $.ajax({
+            type:"POST",
+            url:"/",
+            headers: {
+                'X-CSRF-TOKEN': $.cookie('csrf_access_token')
+            },
+            success: function(response) {
+                if (response.result == "success") {
+                    alert('데이터 분석 요청 완료! 시간이 소요됩니다.')
+                }
+            },
+            error:function(error){
+                $.ajax({
+                    type:"GET",
+                    url:"/refresh",
+                    success: function(response) {
+                        if (response.result == "success") {
+                            document.cookie=`csrf_access_token=${response.csrf_access_token}`
+                            $.ajax({
+                                type:"POST",
+                                url:"/",
+                                headers: {
+                                    'X-CSRF-TOKEN': $.cookie('csrf_access_token')
+                                },
+                                success: function(response) {
+                                    if (response.result == "success") {
+                                        alert('데이터 분석 요청 완료! 시간이 소요됩니다.')
+                                    }
+                                },
+                            })
+                        }
+                    },
+                    error:function(error){
+                        alert("로그인 후 이용해주세요!(refresh토큰 만료)");
+                        window.location.href = '/login'
+                    }
+                });
+            }
+    })
+}
+</script>
+{% endblock %}  
