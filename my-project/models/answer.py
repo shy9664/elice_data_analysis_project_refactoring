@@ -5,7 +5,7 @@ class Answer(db.Model):
     __tablename__ = 'answer'
     id = db.Column(db.Integer, primary_key=True)
     article_id = db.Column(db.Integer, db.ForeignKey('article.id', ondelete='CASCADE'))
-    article = db.relationship('Article', backref=db.backref('answer_set'))
+    article = db.relationship('Article', backref=db.backref('answer_set', lazy='joined'))
     user_id = db.Column(db.String(255), nullable=False)
     name = db.Column(db.String(255), nullable=False)
     content = db.Column(db.Text(), nullable=False)
