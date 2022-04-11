@@ -21,7 +21,7 @@ def index():
             db.session.add(new_user)
             db.session.commit()
             
-            return render_template('login.html')  
+            return redirect(url_for('login.index'))
 
         else:
             flash('이미 존재하는 아이디입니다. 다시 입력해주세요')
